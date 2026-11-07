@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grok Bot Terminal</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#040705;--card:#09110b;--line:#173322;--ink:#e8f5ec;--mut:#7d9a86;--g:#22e07a;--gd:#0f7a40;--red:#ff5d57;--amb:#f2b63d;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:15px/1.45 var(--sans);background:radial-gradient(900px 420px at 80% -8%,#0c3a1e 0,transparent 65%),var(--bg);min-height:100vh}
+.wrap{max-width:1040px;margin:0 auto;padding:18px 14px 48px}
+header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-bottom:16px}
+.brand{display:flex;gap:14px;align-items:center}
+.orb{width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9ffe9,#22e07a 55%,#0b6b37);display:grid;place-items:center;box-shadow:0 0 24px #22e07a55;flex:none}
+.orb i{display:inline-block;width:5px;height:18px;background:#04110a;border-radius:3px;margin:0 3px}
+h1{margin:0;font:700 24px/1.1 var(--mono);letter-spacing:-.5px}h1 b{color:var(--g)}
+.brand p{margin:3px 0 0;color:var(--mut);font-size:13px}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{font:12px var(--mono);border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--mut);background:var(--card)}
+.pill.ok{color:var(--g);border-color:var(--gd)}
+.hero{border:1px solid var(--gd);border-radius:16px;padding:18px;background:linear-gradient(135deg,#0b2415,#07100a);margin-bottom:12px}
+.hero .live{font:12px var(--mono);color:var(--g);display:flex;align-items:center;gap:8px}
+.hero .live span{width:9px;height:9px;border-radius:50%;background:var(--amb)}
+.hero .live span.pulse{background:var(--g);animation:p 1.4s infinite}
+@keyframes p{0%{box-shadow:0 0 0 0 #22e07a99}100%{box-shadow:0 0 0 10px #22e07a00}}
+.hero h2{margin:8px 0 6px;font:700 24px/1.2 var(--sans)}
+.hero p{margin:0;color:var(--mut)}.hero p b{color:var(--ink)}
+em{font-style:normal}.up{color:var(--g)}.dn{color:var(--red)}
+.stats{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:10px;margin-bottom:12px}
+@media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.stat.big{grid-column:1/-1}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.stat span{font:12px var(--mono);color:var(--mut)}
+.stat b{display:block;font:700 28px/1.2 var(--mono)}.stat.big b{font-size:36px;color:var(--g)}
+.stat.up b{color:var(--g)}.stat.dn b{color:var(--red)}
+.stat small{color:var(--mut);font-size:12px}
+.bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+button{font:13px var(--mono);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer}
+button:hover{border-color:var(--g)}button:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.card h2{margin:0 0 10px;font:600 13px var(--mono);color:var(--g);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;gap:8px}
+.card h2 span{color:var(--mut);text-transform:none;letter-spacing:0;font-weight:400}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media(max-width:700px){.flow{grid-template-columns:1fr 1fr}}
+.step{border:1px solid var(--line);border-radius:12px;padding:10px;position:relative}
+.step i{font:700 12px var(--mono);font-style:normal;color:#04110a;background:var(--mut);border-radius:50%;width:22px;height:22px;display:grid;place-items:center;margin-bottom:6px}
+.step b{display:block}.step small{color:var(--mut);font-size:12px;line-height:1.3;display:block}
+.step.on{border-color:var(--g);background:#0c2616;box-shadow:0 0 18px #22e07a33}.step.on i{background:var(--g)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.cols{grid-template-columns:1fr}}
+.big2{font:700 28px var(--mono);margin-bottom:6px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:14px}
+dt{color:var(--mut)}dd{margin:0;text-align:right}
+.hint,.empty{color:var(--mut);font-size:13px;margin:8px 0 0}
+svg{display:block;width:100%;height:70px;margin-top:8px}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:700px){.chips{grid-template-columns:1fr 1fr}}
+.chip{border:1px solid var(--gd);border-radius:12px;padding:9px 11px}
+.chip.no{border-color:var(--line);opacity:.65}
+.chip b{font:700 14px var(--mono);display:block}.chip small{display:block;color:var(--mut);font-size:12px}
+.row{display:grid;grid-template-columns:62px 92px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.row time{font:12px var(--mono);color:var(--mut);padding-top:3px}
+.row b{font:700 14px var(--mono)}.row small{display:block;color:var(--mut);font-size:13px}
+.res{float:right;font:12px var(--mono);color:var(--mut)}
+.bdg{font:700 10px var(--mono);padding:4px 6px;border-radius:6px;text-align:center;border:1px solid var(--line)}
+.ENTER{color:var(--g);border-color:var(--g)}.EXIT{color:#7bd7ff;border-color:#7bd7ff}.SKIP{color:var(--amb);border-color:var(--amb)}.FILTERED,.ERROR{color:var(--red);border-color:var(--red)}
+.agents{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:820px){.agents{grid-template-columns:1fr 1fr}}@media(max-width:520px){.agents{grid-template-columns:1fr}}
+.ag{border:1px solid var(--line);border-radius:12px;padding:11px}
+.ag.on{border-color:var(--g);background:#0c2616}
+.ag h3{margin:0 0 4px;font:700 14px var(--mono)}.ag h3 span{color:var(--g);margin-right:6px}.ag h3 small{color:var(--mut);font-weight:400}
+.ag p{margin:0 0 6px;font-size:13px;color:var(--mut)}.ag code{font:12px var(--mono);color:var(--g)}
+details summary{cursor:pointer;color:var(--g);font:600 13px var(--mono)}
+details dl{margin-top:10px;grid-template-columns:1fr}details dt{color:var(--ink);font-weight:600;margin-top:6px}details dd{text-align:left;color:var(--mut)}
+.note{color:var(--mut);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><div class="orb"><span><i></i><i></i></span></div>
+      <div><h1>Grok Bot <b>Terminal</b></h1><p>Yangi kripto tokenlarni qidiradi, tekshiradi va sinov rejimida savdo qiladi</p></div></div>
+    <div class="pills"><span class="pill ok">PAPER · soxta pul</span><span class="pill" id="src">ulanmoqda…</span></div>
+  </header>
+  <section class="hero" id="hero"></section>
+  <section class="stats" id="stats"></section>
+  <div class="bar"><button id="pp">❚❚ To‘xtatish</button><button id="rs">↺ Qayta boshlash</button></div>
+  <section class="card"><h2>Bot qanday ishlaydi <span>hozirgi qadam yoritilgan</span></h2><div class="flow" id="flow"></div></section>
+  <div class="cols">
+    <section class="card"><h2>Ochiq bitim</h2><div id="trade"></div></section>
+    <section class="card"><h2>Balans o‘zgarishi</h2><div id="eqtxt"></div><svg id="spark" viewBox="0 0 400 60" preserveAspectRatio="none"></svg></section>
+  </div>
+  <section class="card"><h2>Qarorlar jurnali <span id="cnt"></span></h2><div id="log"></div></section>
+  <section class="card"><h2>Oxirgi tekshirilgan tokenlar</h2><div class="chips" id="chips"></div></section>
+  <section class="card"><h2>6 ta agent</h2><div class="agents" id="agents"></div></section>
+  <details class="card"><summary>Tushunarsiz so‘zlar lug‘ati</summary><dl>
+    <dt>Paper rejim</dt><dd>Soxta pul bilan sinov. Bot haqiqiy narxlarni kuzatadi, lekin hech qanday haqiqiy pul sarflanmaydi.</dd>
+    <dt>Token / memecoin</dt><dd>Kripto “tanga”. Yangi memecoinlarning ko‘pi tez qadrsizlanadi yoki firibgarlik bo‘lib chiqadi.</dd>
+    <dt>Honeypot</dt><dd>Sotib olsa bo‘ladi, lekin qayta sotib bo‘lmaydigan tuzoq token.</dd>
+    <dt>Rug pull</dt><dd>Token yaratuvchilari pulni olib qochishi.</dd>
+    <dt>Likvidlik qulflangan (LP locked)</dt><dd>Savdo puli yaratuvchi tomonidan olib qo‘yilmasligi uchun qulflangan. Qulflangani xavfsizroq.</dd>
+    <dt>Slippage (narx farqi)</dt><dd>Kutilgan narx bilan haqiqiy bitim narxi orasidagi farq. Katta bo‘lsa, bot kirmaydi.</dd>
+    <dt>Stop-loss / Take-profit</dt><dd>Zarar belgilangan darajaga yetsa yoki foyda maqsadga yetsa, bot avtomatik chiqadi.</dd>
+  </dl></details>
+  <p class="note">Bu panel savdo maslahati emas. Paper natijasi real foydani kafolatlamaydi.</p>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const E=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const f=(n,d=2)=>Number(n).toFixed(d),sgn=n=>(n>=0?"+":"−")+f(Math.abs(n),1)+"%";
+const TAG={ENTER:"KIRDI",EXIT:"CHIQDI",SKIP:"O‘TKAZDI",FILTERED:"RAD ETDI",ERROR:"XATO"};
+function uz(t){let m;t=String(t);const tail=t.includes("·")?" ·"+t.split("·").slice(1).join("·"):"";
+ if(/honeypot/i.test(t))return "sotib olgach qayta sotib bo‘lmaydi (honeypot), firibgarlik belgisi";
+ if(/top 10/i.test(t))return "tokenning katta qismi bir nechta hamyonda, xavfli";
+ if(m=t.match(/est\. slip ([\d.]+)% > ([\d.]+)%/))return `narx farqi (slippage) taxminan ${m[1]}%, limit ${m[2]}% dan yuqori`;
+ if(/spike faded/.test(t))return "hajm sakrashi bitim ochilguncha tugab qoldi";
+ if(m=t.match(/new pair (\d+)m old · buys (\d+)% of flow/))return `yangi token (${m[1]} daqiqalik), savdolarning ${m[2]}% i xarid`;
+ if(/stop-loss/.test(t))return "zararni cheklash (stop-loss) ishladi"+tail;
+ if(/take-profit/.test(t))return "foyda maqsadiga yetdi"+tail;
+ if(/time exit/.test(t))return "vaqt tugadi, harakat susaydi"+tail;
+ if(/price feed lost/.test(t))return "narx ma’lumoti uzildi";
+ if(/rug score/.test(t))return "xavf bahosi juda baland";
+ if(/LP locked/.test(t))return "likvidlik yetarlicha qulflanmagan";
+ if(/rugcheck/i.test(t))return "xavfsizlik tekshiruvi ishlamadi, shuning uchun o‘tkazilmadi";
+ return t}
+const resUz=t=>({"not traded":"savdo qilinmadi","no order":"buyurtma berilmadi","retry":"qayta uriniladi"}[t]||String(t).replace(/^size (\d+)%/,"hajm $1%"));
+let live=false,demo=null,st=null;
+const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand()}
+const H=()=>({"X-Init-Data":tg?tg.initData||"":""});
+async function poll(){
+ try{const x=await fetch("api/state",{headers:H()});
+  if(x.status===401||x.status===403){$("#hero").innerHTML="<h2>Ruxsat yo‘q</h2><p>Bu panelni faqat egasi Telegram Mini App orqali ocha oladi.</p>";return false}
+  if(!x.ok||!(x.headers.get("content-type")||"").includes("json"))throw 0;
+  st=await x.json();live=true;render();return true}
+ catch(e){if(live)$("#src").textContent="aloqa uzildi";return null}
+}
+async function boot(){const r=await poll();
+ if(r===true)setInterval(poll,2000);
+ else if(r===null&&!live){demo=newDemo();setInterval(demoTick,1800);demoTick()}}
+$("#pp").onclick=()=>{if(live)fetch("api/pause",{method:"POST",headers:H()}).then(poll);else{demo.paused=!demo.paused;st=demo;render()}};
+$("#rs").onclick=()=>{if(!confirm("Hisob va statistika nolga qaytariladi. Davom etasizmi?"))return;
+ if(live)fetch("api/reset",{method:"POST",headers:H()}).then(r=>{if(r.status===409)alert("Avval ochiq bitim yopilishini kuting.");poll()});
+ else{demo=newDemo();st=demo;render()}};
+/* ---------- DEMO (serversiz): tasodifiy ma'lumot ---------- */
+const rnd=(a,b)=>a+Math.random()*(b-a),SYL=["zo","rbi","lu","mo","waf","fl","do","zy","chi","fro","tof","uu","kek","nib"];
+function newDemo(){return{bal:133.70,start:133.70,tr:0,w:0,l:0,pos:null,logs:[],filt:0,skip:0,eq:[133.70],recent:[],n:0,act:"scan",lastRug:"—",clock:"23:00:00",sp:10,cap:2,paused:false,t:23*3600}}
+function dlog(s,tag,sym,reason,res){s.n++;s.logs.unshift({time:s.clock,tag,sym,reason,res});s.logs.length=Math.min(s.logs.length,40)}
+function demoTick(){const s=demo;st=s;if(s.paused){render();return}
+ s.t+=Math.round(rnd(120,420));s.clock=[s.t/3600%24|0,s.t/60%60|0,s.t%60].map(x=>String(x).padStart(2,"0")).join(":");
+ if(s.pos){const p=s.pos;p.k++;p.pnl+=rnd(-3.2,4.2)+(p.k<3?.8:0);s.act="exec";let why=null;
+  if(p.pnl<=-6)why="stop-loss −6%";else if(p.pnl>=9)why="take-profit +9%";else if(p.k>=7)why="time exit · momentum faded";
+  if(why){const u=p.size*p.pnl/100-p.size*.004;s.bal=Math.max(0,s.bal+u);s.tr++;u>0?s.w++:s.l++;s.eq.push(s.bal);s.act="log";
+   dlog(s,"EXIT",p.sym,why+" · "+sgn(p.pnl),(u>=0?"+$":"−$")+f(Math.abs(u)));s.pos=null}}
+ else{const sym="$"+Array.from({length:3},()=>SYL[Math.random()*SYL.length|0]).join("").toUpperCase().slice(0,6);
+  const c={sym,vol:rnd(2.5,6).toFixed(1),lp:Math.random()<.6?88+(Math.random()*10|0):0,top:rnd(25,85)|0,hp:Math.random()<.14,slip:rnd(.3,4.2),age:2+(Math.random()*8|0),buy:55+(Math.random()*30|0),fade:Math.random()<.18,state:"ok"};
+  s.recent.unshift(c);s.recent.length=Math.min(4,s.recent.length);s.act="rug";
+  if(c.hp||c.top>70){c.state="no";s.filt++;s.lastRug="filtrlandi "+sym;dlog(s,"FILTERED",sym,c.hp?"honeypot: sell sim failed":"top 10 hold "+c.top+"%","not traded")}
+  else{s.lastRug="o‘tdi "+sym;s.act="exec";
+   if(c.slip>s.cap){c.state="no";s.skip++;dlog(s,"SKIP",sym,"est. slip "+f(c.slip,1)+"% > "+f(s.cap,1)+"% cap","no order")}
+   else if(c.fade){c.state="no";s.skip++;dlog(s,"SKIP",sym,"spike faded before fill","no order")}
+   else{const why="new pair "+c.age+"m old · buys "+c.buy+"% of flow";s.pos={sym,entry:rnd(.01,.4),size:s.bal*s.sp/100,slip:c.slip,pnl:0,k:0,why};dlog(s,"ENTER",sym,why,"size "+s.sp+"%")}}}
+ render()}
+/* ---------- chizish ---------- */
+function render(){
+ const s=st,p=s.pos,pl=s.bal-s.start,tot=s.w+s.l,wr=tot?Math.round(100*s.w/tot):null,L=s.logs[0];
+ $("#src").textContent=live?"Server bilan ulangan":"DEMO · serversiz, tasodifiy ma’lumot";
+ $("#pp").textContent=s.paused?"▶ Davom ettirish":"❚❚ To‘xtatish";
+ const A={scan:"Yangi tokenlarni qidiryapti…",rug:"Tokenning xavfsizligini tekshiryapti…",exec:"Bitim shartlarini hisoblayapti…",log:"Natijani yozib qo‘ymoqda…"};
+ const head=s.paused?"To‘xtatilgan":p?E(p.sym)+" tokenini ushlab turibdi":(A[s.act]||A.scan);
+ $("#hero").innerHTML=`<div class="live"><span class="${s.paused?"":"pulse"}"></span>${s.paused?"PAUZA":"ISHLAYAPTI"} · ${E(s.clock)}</div><h2>${head}${p&&!s.paused?` <em class="${p.pnl>=0?"up":"dn"}">${sgn(p.pnl)}</em>`:""}</h2><p>${L?`Oxirgi qaror: <b>${TAG[L.tag]||E(L.tag)}</b> ${E(L.sym)}, ${E(uz(L.reason))}`:"Hali qaror yo‘q. Bot har bir qarorini shu yerda tushuntirib boradi."}</p>`;
+ $("#stats").innerHTML=[["Balans","$"+f(s.bal),`<span class="${pl>=0?"up":"dn"}">${pl>=0?"+":"−"}$${f(Math.abs(pl))}</span> boshlanishdan beri`,"big"],["Bitimlar",s.tr,"yopilgan savdolar",""],["Yutuq",s.w,"foydali bitimlar","up"],["Yutqiziq",s.l,"zararli bitimlar","dn"],["Yutuq ulushi",wr===null?"—":wr+"%","foydali bitimlar ulushi",""]].map(x=>`<div class="stat ${x[3]}"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
+ const cur=p?"exec":s.act;
+ $("#flow").innerHTML=[["scan","1","Qidirish","Yangi token va savdo hajmi oshgani topiladi"],["rug","2","Xavfsizlik","Firibgarlik belgilari tekshiriladi"],["size","3","Hajm","Bitim summasi hisoblanadi"],["exec","4","Bitim","Sotib olinadi, keyin yopiladi"],["log","5","Yozuv","Qaror sabab bilan yoziladi"]].map(x=>`<div class="step ${x[0]===cur?"on":""}"><i>${x[1]}</i><b>${x[2]}</b><small>${x[3]}</small></div>`).join("");
+ $("#trade").innerHTML=p?`<div class="big2">${E(p.sym)} <em class="${p.pnl>=0?"up":"dn"}">${sgn(p.pnl)}</em></div><dl><dt>Kirish narxi</dt><dd>${Number(p.entry).toPrecision(4)} $</dd><dt>Bitim hajmi</dt><dd>$${f(p.size)} (hisobning ${s.sp}% i)</dd><dt>Narx farqi (slippage)</dt><dd>${f(p.slip,2)}%</dd><dt>Nima uchun kirdi</dt><dd>${E(uz(p.why))}</dd></dl><p class="hint">Foyda yoki zarar belgilangan darajaga yetganda, yoki vaqt tugaganda bot o‘zi chiqadi.</p>`:`<p class="empty">Hozir ochiq bitim yo‘q. Bot mos token qidiryapti.</p>`;
+ $("#eqtxt").innerHTML=`Boshida <b>$${f(s.start)}</b> → hozir <b class="${pl>=0?"up":"dn"}">$${f(s.bal)}</b>`;
+ const e=s.eq,mn=Math.min(...e,s.start),mx=Math.max(...e,s.start),rg=mx-mn||1,y=v=>54-(v-mn)/rg*48;
+ $("#spark").innerHTML=`<line x1="0" x2="400" y1="${y(s.start)}" y2="${y(s.start)}" stroke="#173322" stroke-dasharray="4 4"/><polyline points="${e.length<2?"0,30 400,30":e.map((v,i)=>(i/(e.length-1)*400)+","+y(v)).join(" ")}" fill="none" stroke="${pl>=0?"#22e07a":"#ff5d57"}" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`;
+ $("#cnt").textContent=s.n+" ta yozuv";
+ $("#log").innerHTML=s.logs.slice(0,10).map(l=>`<div class="row"><time>${E(l.time)}</time><span class="bdg ${E(l.tag)}">${TAG[l.tag]||E(l.tag)}</span><div><b>${E(l.sym)}</b><span class="res">${E(resUz(l.res))}</span><small>${E(uz(l.reason))}</small></div></div>`).join("")||`<p class="empty">Hozircha qaror yo‘q.</p>`;
+ $("#chips").innerHTML=s.recent.length?s.recent.map(c=>`<div class="chip ${c.state}"><b>${E(c.sym)}</b><small>${c.state==="ok"?"xavfsizlikdan o‘tdi":"rad etildi yoki o‘tkazildi"}</small><small>hajm odatdagidan ${E(c.vol)}× ko‘p${c.lp?`, likvidlik ${c.lp}% qulflangan`:""}</small></div>`).join(""):`<p class="empty">Hali token topilmadi.</p>`;
+ const AG=[["◎","Skaner","Scanner","Yangi tokenlarni va savdo hajmi keskin oshganlarini topadi. Faqat belgilaydi, o‘zi savdo qilmaydi.",s.recent[0]?"oxirgisi: "+E(s.recent[0].sym):"kutmoqda","scan"],["⛨","Xavfsizlik","Rug Check","Firibgarlik belgilarini tekshiradi. O‘tmagan tokenga bitim ochilmaydi.",E(s.lastRug),"rug"],["◆","Hajm","Sizer","Bitimga hisobning necha foizini ajratishni hisoblaydi.",`${s.sp}% = $${f(s.bal*s.sp/100)}`,"size"],["▶","Bajaruvchi","Executor","Bitimni ochadi va yopadi, narx farqini nazorat qiladi.",p?E(p.sym)+" ochiq":"bo‘sh","exec"],["✎","Jurnal","Logger","Har bir qarorni sabab bilan yozadi. Sababsiz bitim bo‘lmaydi.",s.n+" ta yozuv","log"],["◉","Hisob","Equity","Balans va uning o‘zgarishini yangilab boradi.",`$${f(s.bal)} · ${s.tr} ta yopilgan`,"eq"]];
+ $("#agents").innerHTML=AG.map(a=>`<div class="ag ${a[5]===cur?"on":""}"><h3><span>${a[0]}</span>${a[1]} <small>${a[2]}</small></h3><p>${a[3]}</p><code>${a[4]}</code></div>`).join("");
+}
+boot();
+</script>
+</body>
+</html>
