@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>XAUUSD M5 Terminal</title>
+<title>XAUUSD M1 + M5 Terminal</title>
 <style>
 :root{--bg:#040705;--card:#09110b;--line:#173322;--ink:#e8f5ec;--mut:#7d9a86;--g:#22e07a;--gd:#0f7a40;--red:#ff5d57;--amb:#f2b63d;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}
@@ -47,16 +47,21 @@ button{cursor:pointer}button:hover{border-color:var(--g)}
 details summary{cursor:pointer;color:var(--g);font:600 13px var(--mono)}
 details dl{grid-template-columns:1fr;margin-top:10px}details dt{color:var(--ink);font-weight:600;margin-top:6px}details dd{text-align:left;color:var(--mut);font-family:var(--sans)}
 .note{color:var(--mut);font-size:12px}
+.cr{display:grid;grid-template-columns:1fr 1.3fr 1fr 1fr 1.2fr;gap:8px;padding:9px 0;border-top:1px solid var(--line);align-items:center;font:13px var(--mono)}
+.cr.h{border:0;color:var(--mut);font-size:11px}.cr.on{background:#0c2616;border-radius:8px;padding-left:8px;padding-right:8px}
+label{font:13px var(--sans);color:var(--mut);display:flex;gap:6px;align-items:center}
+@media(max-width:600px){.cr{font-size:11px;gap:4px}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div><h1>XAUUSD <b>M5</b> Terminal</h1><p>Oltin/dollar, 5 daqiqalik shamlar: tahlil va sinov (paper) bot</p></div>
+    <div><h1>XAUUSD <b>M1 + M5</b> Terminal</h1><p>Oltin/dollar: ikkala vaqt oralig‘ini tahlil qiladi, aniqrog‘ini tanlaydi (paper bot)</p></div>
     <div class="pills"><span class="pill ok">PAPER · soxta pul</span><span class="pill" id="src">ulanmoqda…</span></div>
   </header>
   <section class="hero" id="hero"></section>
-  <section class="card"><h2>Grafik · M5 <span>EMA20 (havorang), EMA50 (sariq), chiziqlar: daraja</span></h2><svg id="ch" viewBox="0 0 820 320"></svg><svg id="rs" viewBox="0 0 820 70"></svg></section>
+  <section class="card"><h2>Grafik · <span id="tfl"></span> <span>EMA20 (havorang), EMA50 (sariq), chiziqlar: daraja</span></h2><svg id="ch" viewBox="0 0 820 320"></svg><svg id="rs" viewBox="0 0 820 70"></svg></section>
+  <section class="card"><h2>Qaysi vaqt oralig‘i aniqroq? <span>so‘nggi ~33 soatdagi tarixiy sinov</span></h2><div id="cmp"></div></section>
   <section class="cards" id="cards"></section>
   <section class="card"><h2>Signal sabablari <span>5 omil, 3 tasi bir tomonga bo‘lsa signal</span></h2><div id="why"></div></section>
   <div class="cols">
@@ -67,81 +72,111 @@ details dl{grid-template-columns:1fr;margin-top:10px}details dt{color:var(--ink)
   <section class="card"><h2>Signal tarixi <span>signal o‘zgargan paytlar</span></h2><div id="sigs"></div></section>
   <section class="card"><h2>Ma’lumot manbai</h2><div class="set">
     <select id="ss"><option value="auto">Avto: PAXG/USDT (Binance), kalitsiz</option><option value="td">XAU/USD: Twelve Data (kalit kerak)</option><option value="demo">Demo (tasodifiy)</option></select>
+    <select id="st"><option value="auto">Vaqt oralig‘i: Avto (aniqrog‘ini tanlaydi)</option><option value="m1">Faqat M1</option><option value="m5">Faqat M5</option></select>
+    <label><input type="checkbox" id="sf"> Tarixiy natija manfiy bo‘lsa bot savdo qilmasin</label>
     <input id="sk" placeholder="Twelve Data API kaliti" size="26" type="password" autocomplete="off">
     <button id="sb">Saqlash</button><button id="rb">Sinov hisobini nolga qaytarish</button></div>
     <p class="hint">PAXG oltin bilan bog‘langan token: narxi XAUUSD ga yaqin, lekin aynan o‘zi emas va 24/7 savdo qilinadi. Haqiqiy XAU/USD uchun twelvedata.com da bepul kalit oling (kalit faqat shu brauzerda saqlanadi). Bepul tarifda kechikish bo‘lishi mumkin.</p></section>
   <details class="card"><summary>Tushunarsiz so‘zlar lug‘ati</summary><dl>
-    <dt>M5</dt><dd>Har bir sham 5 daqiqani ko‘rsatadi.</dd>
+    <dt>M1 / M5</dt><dd>Har bir sham 1 yoki 5 daqiqani ko‘rsatadi. M1 tez, lekin shovqinli va spred unga ko‘proq ta’sir qiladi.</dd>
+    <dt>R (natija o‘lchovi)</dt><dd>Bitimda xavf qilingan summa (stop masofasi). +0.2R: har bir bitimga o‘rtacha 0.2 marta xavf miqdorida foyda. −0.2R: shuncha zarar.</dd>
+    <dt>Tarixiy sinov</dt><dd>Xuddi shu qoidalarni oxirgi ~33 soatlik narxlarda “qayta o‘ynab” ko‘rish. Kelajakni kafolatlamaydi.</dd>
     <dt>EMA</dt><dd>Oxirgi narxlarning “silliqlangan” o‘rtachasi. EMA20 tez, EMA50 sekin. Tez chiziq tepada bo‘lsa, narx ko‘tarilyapti.</dd>
     <dt>RSI</dt><dd>0 dan 100 gacha kuch o‘lchovi. 70 dan yuqori: ko‘p sotib olingan, 30 dan past: ko‘p sotilgan.</dd>
     <dt>MACD</dt><dd>Harakat tezlashayotgani yoki sekinlashayotganini ko‘rsatadi.</dd>
     <dt>ATR</dt><dd>Bitta shamning o‘rtacha “kengligi” (dollarda). Stop va maqsadni shunga qarab qo‘yamiz.</dd>
     <dt>SL / TP</dt><dd>SL: zarar shu darajaga yetsa chiqish. TP: foyda shu darajaga yetsa chiqish.</dd>
     <dt>Spred</dt><dd>Sotib olish va sotish narxi orasidagi farq. Har bir bitimda shuncha yo‘qotiladi.</dd>
-    <dt>Qarshilik / qo‘llab-quvvat</dt><dd>Oxirgi 4 soatdagi eng yuqori / eng past narx: narx ko‘pincha shu yerda to‘xtaydi.</dd>
+    <dt>Qarshilik / qo‘llab-quvvat</dt><dd>Oxirgi 48 shamdagi eng yuqori / eng past narx: narx ko‘pincha shu yerda to‘xtaydi.</dd>
   </dl></details>
-  <p class="note">Bu savdo maslahati emas. Paper bot sahifa ochiq turganda ishlaydi. Soxta natija real foydani kafolatlamaydi.</p>
+  <p class="note">Bu savdo maslahati emas. Bitimlar soni kam bo‘lsa, M1 va M5 orasidagi farq tasodif bo‘lishi mumkin. Paper bot sahifa ochiq turganda ishlaydi. Soxta natija real foydani kafolatlamaydi.</p>
 </div>
 <script>
 const $=s=>document.querySelector(s),f=(n,d=2)=>Number(n).toFixed(d);
 const E=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const LS=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-const SPREAD=0.35,RISK=0.01,MAXH=24,LBL={BUY:"SOTIB OLISH",SELL:"SOTISH",WAIT:"KUTISH"};
-const newAcct=()=>({bal:1000,start:1000,pos:null,trades:[],lastT:0,sig:[],lastSig:""});
-let src=LS("xau_src","auto"),key=LS("xau_key",""),acct=LS("xau_acct",null)||newAcct(),all=[],demo=false,srcName="",err="",A=null,timer=null;
+const SPREAD=0.35,RISK=0.01,MAXH=24,MINTR=10,TFMS={m1:60000,m5:300000},LBL={BUY:"SOTIB OLISH",SELL:"SOTISH",WAIT:"KUTISH"};
+const newAcct=()=>({bal:1000,start:1000,pos:null,trades:[],lastT:{m1:0,m5:0},sig:[],lastSig:{m1:"",m5:""},tf:"m5"});
+let src=LS("xau_src","auto"),key=LS("xau_key",""),tfMode=LS("xau_tf","auto"),filt=LS("xau_filt",false),acct=LS("xau_acct2",null)||newAcct();
+let m1=[],store="",demo=false,srcName="",err="",S=null,chosen="m5",timer=null;
 const hm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
 /* ---------- indikatorlar ---------- */
 const ema=(a,n)=>{const k=2/(n+1);let e=a[0];return a.map((v,i)=>i?(e=v*k+e*(1-k)):e)};
 function rsi(c,n=14){const r=Array(c.length).fill(50);let g=0,l=0;for(let i=1;i<=n&&i<c.length;i++){const d=c[i]-c[i-1];d>0?g+=d:l-=d}g/=n;l/=n;if(c.length>n)r[n]=100-100/(1+g/(l||1e-9));for(let i=n+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(n-1)+(d>0?d:0))/n;l=(l*(n-1)+(d<0?-d:0))/n;r[i]=100-100/(1+g/(l||1e-9))}return r}
 function atr(cs,n=14){const tr=cs.map((x,i)=>i?Math.max(x.h-x.l,Math.abs(x.h-cs[i-1].c),Math.abs(x.l-cs[i-1].c)):x.h-x.l),a=Array(cs.length).fill(tr[0]);let s=0;for(let i=0;i<n;i++)s+=tr[i];a[n-1]=s/n;for(let i=n;i<cs.length;i++)a[i]=(a[i-1]*(n-1)+tr[i])/n;return a}
-function analyze(cs){
- const c=cs.map(x=>x.c),i=c.length-1,e20=ema(c,20),e50=ema(c,50),r=rsi(c),at=atr(cs),e26=ema(c,26),ml=ema(c,12).map((v,k)=>v-e26[k]),sg=ema(ml,9),h=ml.map((v,k)=>v-sg[k]);
- const Av=at[i],L=cs.slice(-48),sup=Math.min(...L.map(x=>x.l)),res=Math.max(...L.map(x=>x.h)),pv=cs.slice(-7,-1),px=c[i],R=r[i],F=[];
- const up=e20[i]>e50[i]&&px>e20[i],dn=e20[i]<e50[i]&&px<e20[i];
+function calc(cs){const c=cs.map(x=>x.c),e26=ema(c,26),ml=ema(c,12).map((v,k)=>v-e26[k]),sg=ema(ml,9);return{e20:ema(c,20),e50:ema(c,50),r:rsi(c),at:atr(cs),h:ml.map((v,k)=>v-sg[k])}}
+function sigAt(cs,I,i,ms){
+ const px=cs[i].c,Av=I.at[i],R=I.r[i],L=cs.slice(Math.max(0,i-47),i+1),sup=Math.min(...L.map(x=>x.l)),res=Math.max(...L.map(x=>x.h)),pv=cs.slice(i-6,i),F=[];
+ const e20=I.e20[i],e50=I.e50[i],up=e20>e50&&px>e20,dn=e20<e50&&px<e20;
  F.push({k:"Trend (EMA20/EMA50)",s:up?1:dn?-1:0,t:up?"narx ikkala EMA dan yuqori: ko‘tarilish trendi":dn?"narx ikkala EMA dan past: pasayish trendi":"EMA lar aralash: aniq trend yo‘q"});
- const s3=e20[i]-e20[i-3];
+ const s3=e20-I.e20[i-3];
  F.push({k:"EMA20 qiyaligi",s:s3>.2*Av?1:s3<-.2*Av?-1:0,t:s3>.2*Av?"tez chiziq yuqoriga qiyshaygan":s3<-.2*Av?"tez chiziq pastga qiyshaygan":"tez chiziq deyarli tekis"});
  F.push({k:"RSI (14) = "+f(R,0),s:R>52&&R<70?1:R<48&&R>30?-1:0,t:R>=70?"haddan tashqari sotib olingan, qaytish xavfi":R<=30?"haddan tashqari sotilgan, ko‘tarilish ehtimoli":R>52?"xaridorlar kuchliroq":R<48?"sotuvchilar kuchliroq":"neytral hudud"});
- const hm_=h[i],hp=h[i-1];
+ const hm_=I.h[i],hp=I.h[i-1];
  F.push({k:"MACD",s:hm_>0&&hm_>hp?1:hm_<0&&hm_<hp?-1:0,t:hm_>0&&hm_>hp?"ko‘tarilish harakati kuchayapti":hm_<0&&hm_<hp?"pasayish harakati kuchayapti":"harakat susayyapti yoki aralash"});
  const hh=Math.max(...pv.map(x=>x.h)),ll=Math.min(...pv.map(x=>x.l));
  F.push({k:"Yaqin oraliqdan chiqish",s:px>hh?1:px<ll?-1:0,t:px>hh?"narx oxirgi 6 sham maksimumidan yuqoriga chiqdi":px<ll?"narx oxirgi 6 sham minimumidan pastga tushdi":"narx oxirgi 6 sham oralig‘ida"});
  const score=F.reduce((a,x)=>a+x.s,0);let sig="WAIT",note="";
- if(Av/px<0.00012)note="bozor juda sokin (ATR past), kirish tavsiya etilmaydi";
+ if(Av/px<0.00012*Math.sqrt(ms/300000))note="bozor juda sokin (ATR past), kirish tavsiya etilmaydi";
  else if(score>=3){R>=70?note="sotib olish belgilari bor, lekin RSI juda baland: kutgan ma’qul":sig="BUY"}
  else if(score<=-3){R<=30?note="sotish belgilari bor, lekin RSI juda past: kutgan ma’qul":sig="SELL"}
  else note="omillar bir-birini tasdiqlamayapti";
- const dir=sig==="BUY"?1:sig==="SELL"?-1:0;
- return{e20,e50,r,at,h:h,A:Av,R,px,sup,res,F,score,sig,dir,note,hm:hm_,hp,e20n:e20[i],e50n:e50[i]};
+ return{F,score,sig,dir:sig==="BUY"?1:sig==="SELL"?-1:0,note,A:Av,R,px,sup,res,hm:hm_,hp,e20n:e20,e50n:e50};
 }
-/* ---------- ma'lumot manbalari ---------- */
+/* tarixiy sinov: xuddi shu qoidalar, spred bilan, natija R birligida */
+function backtest(cs,I,from,ms){
+ let n=0,w=0,sum=0,i=from;
+ while(i<cs.length-1){
+  const s=sigAt(cs,I,i,ms);if(!s.dir){i++;continue}
+  const A=I.at[i],sd=1.5*A,px=cs[i].c,entry=px+s.dir*SPREAD,sl=px-s.dir*sd,tp=px+s.dir*2.25*A;let exit=null,end=i;
+  for(let j=i+1;j<cs.length;j++){const x=cs[j],hs=s.dir>0?x.l<=sl:x.h>=sl,ht=s.dir>0?x.h>=tp:x.l<=tp;
+   if(hs){exit=sl;end=j;break}if(ht){exit=tp;end=j;break}if(j-i>=MAXH){exit=x.c;end=j;break}}
+  if(exit==null)break;
+  const R=(exit-entry)*s.dir/sd;n++;sum+=R;if(R>0)w++;i=end+1}
+ return{n,wr:n?w/n:0,exp:n?sum/n:0}}
+function agg(a,ms){const o=[];for(const x of a){const t=Math.floor(x.t/ms)*ms,l=o[o.length-1];if(l&&l.t===t){l.h=Math.max(l.h,x.h);l.l=Math.min(l.l,x.l);l.c=x.c}else o.push({t,o:x.o,h:x.h,l:x.l,c:x.c})}return o}
+/* ---------- ma'lumot manbalari (asos: M1) ---------- */
 async function getJSON(u){const r=await fetch(u);if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
-async function binance(){let d;try{d=await getJSON("https://data-api.binance.vision/api/v3/klines?symbol=PAXGUSDT&interval=5m&limit=240")}catch(e){d=await getJSON("https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=5m&limit=240")}return d.map(k=>({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4]}))}
-async function twelve(){const d=await getJSON("https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=240&timezone=UTC&apikey="+encodeURIComponent(key));if(d.status==="error"||!d.values)throw new Error(d.message||"Twelve Data xatosi");return d.values.map(v=>({t:Date.parse(v.datetime.replace(" ","T")+"Z"),o:+v.open,h:+v.high,l:+v.low,c:+v.close})).reverse()}
-let dm=null,reg=0,rc=0;
-function dstep(){const p=dm[dm.length-1];if(rc--<=0){reg=(Math.random()-.5)*.5;rc=20+Math.random()*30|0}const g=Math.random()+Math.random()+Math.random()-1.5,o=p.c,c=o+reg+g*1.4;dm.push({t:p.t+300000,o,h:Math.max(o,c)+Math.random()*.7,l:Math.min(o,c)-Math.random()*.7,c})}
-function demoData(){if(!dm){dm=[{t:Math.floor(Date.now()/300000)*300000-240*300000,o:2650,h:2650.5,l:2649.5,c:2650}];while(dm.length<240)dstep()}else{dstep();if(dm.length>400)dm.shift()}return dm.slice()}
+async function bin(limit,end){const q="/api/v3/klines?symbol=PAXGUSDT&interval=1m&limit="+limit+(end?"&endTime="+end:"");let d;try{d=await getJSON("https://data-api.binance.vision"+q)}catch(e){d=await getJSON("https://api.binance.com"+q)}return d.map(k=>({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4]}))}
+async function binance(have){if(have>=500)return bin(60);const a=await bin(1000),b=await bin(1000,a[0].t-1),c=await bin(1000,b[0].t-1);return[...c,...b,...a]}
+async function twelve(have){const n=have>=500?30:5000;const d=await getJSON("https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=1min&outputsize="+n+"&timezone=UTC&apikey="+encodeURIComponent(key));if(d.status==="error"||!d.values)throw new Error(d.message||"Twelve Data xatosi");return d.values.map(v=>({t:Date.parse(v.datetime.replace(" ","T")+"Z"),o:+v.open,h:+v.high,l:+v.low,c:+v.close})).reverse()}
+function merge(n){const mp=new Map(m1.map(x=>[x.t,x]));n.forEach(x=>mp.set(x.t,x));m1=[...mp.values()].sort((a,b)=>a.t-b.t);if(m1.length>6000)m1=m1.slice(-6000)}
+let reg=0,rc=0;
+function dstep(){const p=m1[m1.length-1],o=p.c;if(rc--<=0){reg=(Math.random()-.5)*.25;rc=60+Math.random()*100|0}const g=Math.random()+Math.random()+Math.random()-1.5,c=o+reg+g*.7;m1.push({t:p.t+60000,o,h:Math.max(o,c)+Math.random()*.35,l:Math.min(o,c)-Math.random()*.35,c})}
+function useDemo(n){demo=true;srcName=n;if(store!=="demo"){m1=[];store="demo"}if(!m1.length){m1=[{t:Math.floor(Date.now()/60000)*60000-3000*60000,o:2650,h:2650.2,l:2649.8,c:2650}];while(m1.length<3000)dstep()}else{dstep();if(m1.length>5000)m1=m1.slice(-4000)}}
 async function fetchData(){demo=false;
- if(src==="demo"){demo=true;srcName="DEMO · tasodifiy ma’lumot";return demoData()}
- if(src==="td"){if(!key)throw new Error("Twelve Data kaliti kiritilmagan");const d=await twelve();srcName="XAU/USD · Twelve Data";return d}
- try{const d=await binance();srcName="PAXG/USDT · Binance (oltin proksi)";return d}
- catch(e){demo=true;srcName="DEMO · Binance’ga ulanib bo‘lmadi";return demoData()}}
+ if(src==="demo")return useDemo("DEMO · tasodifiy ma’lumot");
+ if(src==="td"){if(!key)throw new Error("Twelve Data kaliti kiritilmagan");const d=await twelve(store==="td"?m1.length:0);if(store!=="td"){m1=[];store="td"}merge(d);srcName="XAU/USD · Twelve Data";return}
+ try{const d=await binance(store==="bin"?m1.length:0);if(store!=="bin"){m1=[];store="bin"}merge(d);srcName="PAXG/USDT · Binance (oltin proksi)"}
+ catch(e){if(store==="bin"&&m1.length)throw e;useDemo("DEMO · Binance’ga ulanib bo‘lmadi")}}
+/* ---------- tahlil va tanlov ---------- */
+function build(){
+ const nowT=demo?m1[m1.length-1].t+60000:Date.now(),R={};
+ for(const tf of["m1","m5"]){const ms=TFMS[tf],cs=tf==="m1"?m1:agg(m1,ms),fm=cs[cs.length-1].t+ms>nowT,closed=fm?cs.slice(0,-1):cs;
+  if(closed.length<70)throw new Error("Tahlil uchun sham yetarli emas ("+tf.toUpperCase()+")");
+  const I=calc(closed),win=tf==="m1"?2000:400;
+  R[tf]={cs,closed,I,ms,a:sigAt(closed,I,closed.length-1,ms),bt:backtest(closed,I,Math.max(60,closed.length-win),ms)}}
+ S=R;chosen=pick();botStep(nowT)}
+function pick(){if(tfMode!=="auto")return tfMode;const a=S.m1.bt,b=S.m5.bt,o1=a.n>=MINTR,o5=b.n>=MINTR;let t=acct.tf||"m5";
+ if(o1&&o5){const d=a.exp-b.exp;if(Math.abs(d)>=.1)t=d>0?"m1":"m5"}else if(o1)t="m1";else t="m5";
+ acct.tf=t;return t}
 /* ---------- paper bot ---------- */
 function shut(px,why,t){const p=acct.pos,pnl=(px-p.entry)*p.dir*p.lots*100;acct.bal+=pnl;acct.trades.unshift({...p,exit:px,res:why,pnl,t1:t});acct.trades.length=Math.min(acct.trades.length,50);acct.pos=null}
-function open(a,last){const d=a.dir,sd=1.5*a.A,lots=Math.max(.01,Math.floor(acct.bal*RISK/(sd*100)*100)/100);acct.pos={t:last.t,dir:d,entry:a.px+d*SPREAD,sl:a.px-d*sd,tp:a.px+d*2.25*a.A,lots,why:a.F.filter(x=>x.s===d).map(x=>x.k).join(", ")}}
-function botStep(closed,a){
- if(acct.pos){const p=acct.pos;let k=0;
-  for(const x of all){if(x.t<=p.t)continue;const isC=demo||x.t+300000<=Date.now(),sl=p.dir>0?x.l<=p.sl:x.h>=p.sl,tp=p.dir>0?x.h>=p.tp:x.l<=p.tp;
-   if(sl){shut(p.sl,"SL",x.t);break}if(tp){shut(p.tp,"TP",x.t);break}if(isC&&++k>=MAXH){shut(x.c,"vaqt",x.t);break}}}
- const last=closed[closed.length-1];
- if(last.t>acct.lastT){
-  if(a.sig!==acct.lastSig){acct.sig.unshift({t:last.t,sig:a.sig,px:a.px,sc:a.score});acct.sig.length=Math.min(acct.sig.length,30);acct.lastSig=a.sig}
-  if(acct.lastT&&!acct.pos&&a.dir&&acct.bal>0)open(a,last);
-  acct.lastT=last.t}
- SV("xau_acct",acct)}
+function open(a,L,tf){const d=a.dir,sd=1.5*a.A,lots=Math.max(.01,Math.floor(acct.bal*RISK/(sd*100)*100)/100);acct.pos={t:L.t,tf,dir:d,entry:a.px+d*SPREAD,sl:a.px-d*sd,tp:a.px+d*2.25*a.A,lots,why:a.F.filter(x=>x.s===d).map(x=>x.k).join(", ")}}
+function botStep(nowT){
+ const P=acct.pos;
+ if(P){const ms=TFMS[P.tf],Te=P.t+ms;
+  for(const x of m1){if(x.t<Te)continue;const sl=P.dir>0?x.l<=P.sl:x.h>=P.sl,tp=P.dir>0?x.h>=P.tp:x.l<=P.tp;
+   if(sl){shut(P.sl,"SL",x.t);break}if(tp){shut(P.tp,"TP",x.t);break}
+   if(x.t+60000<=nowT&&x.t+60000-Te>=MAXH*ms){shut(x.c,"vaqt",x.t);break}}}
+ for(const tf of["m1","m5"]){const{closed,a,bt}=S[tf],L=closed[closed.length-1],prev=acct.lastT[tf],isNew=L.t>prev;acct.lastT[tf]=L.t;
+  if(tf!==chosen||!isNew)continue;
+  if(a.sig!==acct.lastSig[tf]){acct.sig.unshift({t:L.t,tf,sig:a.sig,px:a.px,sc:a.score});acct.sig.length=Math.min(acct.sig.length,30);acct.lastSig[tf]=a.sig}
+  if(prev&&!acct.pos&&a.dir&&acct.bal>0&&!(filt&&bt.exp<=0))open(a,L,tf)}
+ SV("xau_acct2",acct)}
 /* ---------- chizish ---------- */
-function chart(a){
- const N=90,st=Math.max(0,all.length-N),v=all.slice(st),W=820,H=320,pl=6,pr=64,pt=10,pb=22,cw=(W-pl-pr)/v.length,P=acct.pos;
+function chart(V){
+ const all=V.cs,I=V.I,a=V.a,N=90,st=Math.max(0,all.length-N),v=all.slice(st),W=820,H=320,pl=6,pr=64,pt=10,pb=22,cw=(W-pl-pr)/v.length,P=acct.pos;
  let hi=Math.max(...v.map(x=>x.h),a.res),lo=Math.min(...v.map(x=>x.l),a.sup);
  if(P){hi=Math.max(hi,P.tp,P.sl,P.entry);lo=Math.min(lo,P.tp,P.sl,P.entry)}
  const pad=(hi-lo)*.06;hi+=pad;lo-=pad;
@@ -149,46 +184,46 @@ function chart(a){
  for(let k=0;k<5;k++){const p=lo+(hi-lo)*k/4;s+=`<line x1="${pl}" x2="${X}" y1="${sy(p)}" y2="${sy(p)}" stroke="#173322" stroke-width="1"/><text class="tx" x="${X+4}" y="${sy(p)+3}">${f(p,1)}</text>`}
  v.forEach((x,j)=>{const c=x.c>=x.o?"#22e07a":"#ff5d57",cx=sx(st+j),b1=sy(Math.max(x.o,x.c)),b2=sy(Math.min(x.o,x.c));s+=`<line x1="${cx}" x2="${cx}" y1="${sy(x.h)}" y2="${sy(x.l)}" stroke="${c}"/><rect x="${cx-cw*.32}" y="${b1}" width="${cw*.64}" height="${Math.max(1,b2-b1)}" fill="${c}"/>`;if(j%15===0)s+=`<text class="tx" x="${cx-12}" y="${H-6}">${hm(x.t)}</text>`});
  const ln=(arr,col)=>{let p="";for(let i=st;i<arr.length;i++)p+=`${sx(i)},${sy(arr[i])} `;return`<polyline points="${p}" fill="none" stroke="${col}" stroke-width="1.6"/>`};
- s+=ln(a.e20,"#7bd7ff")+ln(a.e50,"#f2b63d");
+ s+=ln(I.e20,"#7bd7ff")+ln(I.e50,"#f2b63d");
  const hl=(p,col,lb)=>`<line x1="${pl}" x2="${X}" y1="${sy(p)}" y2="${sy(p)}" stroke="${col}" stroke-dasharray="5 4"/><text class="tx" x="${pl+4}" y="${sy(p)-3}" style="fill:${col}">${lb}</text>`;
  s+=hl(a.res,"#888","qarshilik")+hl(a.sup,"#888","qo‘llab-quvvat");
  if(P)s+=hl(P.entry,"#fff","kirish")+hl(P.sl,"#ff5d57","SL")+hl(P.tp,"#22e07a","TP");
- const lp=all[all.length-1].c;s+=`<line x1="${pl}" x2="${X}" y1="${sy(lp)}" y2="${sy(lp)}" stroke="#e8f5ec" stroke-width=".6"/><rect x="${X}" y="${sy(lp)-8}" width="${pr-2}" height="16" fill="#e8f5ec"/><text x="${X+3}" y="${sy(lp)+4}" style="font:700 11px monospace;fill:#040705">${f(lp,2)}</text>`;
+ const lp=m1[m1.length-1].c;s+=`<line x1="${pl}" x2="${X}" y1="${sy(lp)}" y2="${sy(lp)}" stroke="#e8f5ec" stroke-width=".6"/><rect x="${X}" y="${sy(lp)-8}" width="${pr-2}" height="16" fill="#e8f5ec"/><text x="${X+3}" y="${sy(lp)+4}" style="font:700 11px monospace;fill:#040705">${f(lp,2)}</text>`;
  $("#ch").innerHTML=s;
  const ry=r=>66-(r/100)*62;let q=`<line x1="${pl}" x2="${X}" y1="${ry(70)}" y2="${ry(70)}" stroke="#173322" stroke-dasharray="4 4"/><line x1="${pl}" x2="${X}" y1="${ry(30)}" y2="${ry(30)}" stroke="#173322" stroke-dasharray="4 4"/><text class="tx" x="${X+4}" y="${ry(70)+3}">70</text><text class="tx" x="${X+4}" y="${ry(30)+3}">30</text><text class="tx" x="${pl+2}" y="10">RSI</text><polyline fill="none" stroke="#22e07a" stroke-width="1.6" points="`;
- for(let i=st;i<a.r.length;i++)q+=`${sx(i)},${ry(a.r[i])} `;$("#rs").innerHTML=q+`"/>`}
-const sgnC=n=>n>=0?"up":"dn",money=n=>(n>=0?"+$":"−$")+f(Math.abs(n));
+ for(let i=st;i<I.r.length;i++)q+=`${sx(i)},${ry(I.r[i])} `;$("#rs").innerHTML=q+`"/>`}
+const sgnC=n=>n>=0?"up":"dn",money=n=>(n>=0?"+$":"−$")+f(Math.abs(n)),TL=t=>t.toUpperCase(),Rf=x=>(x>=0?"+":"−")+f(Math.abs(x),2)+"R";
 function render(){
- if(!A){$("#hero").innerHTML=`<div class="live">${E(srcName)}</div><h2>Ma’lumot yuklanmoqda…</h2>${err?`<p class="dn">${E(err)}</p>`:""}`;return}
- const a=A,P=acct.pos,lp=all[all.length-1].c,fl=P?(lp-P.entry)*P.dir*P.lots*100:0,pl=acct.bal-acct.start,last=all[all.length-1];
- const stale=!demo&&(Date.now()-last.t-300000)/60000>15;
- $("#src").textContent=srcName;
+ if(!S){$("#hero").innerHTML=`<div class="live">${E(srcName)}</div><h2>Ma’lumot yuklanmoqda…</h2>${err?`<p class="dn">${E(err)}</p>`:""}`;return}
+ const V=S[chosen],a=V.a,P=acct.pos,lastM=m1[m1.length-1],lp=lastM.c,fl=P?(lp-P.entry)*P.dir*P.lots*100:0,pl=acct.bal-acct.start;
+ const stale=!demo&&(Date.now()-lastM.t-60000)/60000>15;
+ $("#src").textContent=srcName;$("#tfl").textContent=TL(chosen);
  const nb=a.F.filter(x=>x.s>0).length,ns=a.F.filter(x=>x.s<0).length;
- $("#hero").innerHTML=`<div class="live">● ${E(srcName)}</div><h2><span class="sig ${a.sig}">${LBL[a.sig]}</span><span>${f(lp,2)}</span></h2><p>${a.sig==="WAIT"?E(a.note)+".":`5 omildan ${a.sig==="BUY"?nb:ns} tasi ${a.sig==="BUY"?"sotib olishni":"sotishni"} ko‘rsatyapti. Taxminiy SL: <b>${f(a.px-a.dir*1.5*a.A,2)}</b>, TP: <b>${f(a.px+a.dir*2.25*a.A,2)}</b>.`} ${demo?"":`Keyingi sham yopilishiga <b id="cd"></b>.`}</p>${P?`<p>Bot hozir bitimda: <b>${LBL[P.dir>0?"BUY":"SELL"]}</b> ${f(P.entry,2)}, natija <b class="${sgnC(fl)}">${money(fl)}</b></p>`:""}${stale?`<p class="dn">Bozor yopiq bo‘lishi mumkin: oxirgi sham ${Math.round((Date.now()-last.t-300000)/60000)} daqiqa oldin edi.</p>`:""}${err?`<p class="dn">${E(err)}</p>`:""}`;
- chart(a);
+ $("#hero").innerHTML=`<div class="live">● ${E(srcName)} · tanlangan vaqt oralig‘i: <b>${TL(chosen)}</b> ${tfMode==="auto"?"(avto)":"(qo‘lda)"}</div><h2><span class="sig ${a.sig}">${LBL[a.sig]}</span><span>${f(lp,2)}</span></h2><p>${a.sig==="WAIT"?E(a.note)+".":`5 omildan ${a.sig==="BUY"?nb:ns} tasi ${a.sig==="BUY"?"sotib olishni":"sotishni"} ko‘rsatyapti. Taxminiy SL: <b>${f(a.px-a.dir*1.5*a.A,2)}</b>, TP: <b>${f(a.px+a.dir*2.25*a.A,2)}</b>.`} ${demo?"":`Keyingi ${TL(chosen)} sham yopilishiga <b id="cd"></b>.`}</p>${P?`<p>Bot hozir bitimda (${TL(P.tf)}): <b>${LBL[P.dir>0?"BUY":"SELL"]}</b> ${f(P.entry,2)}, natija <b class="${sgnC(fl)}">${money(fl)}</b></p>`:""}${stale?`<p class="dn">Bozor yopiq bo‘lishi mumkin: oxirgi sham ${Math.round((Date.now()-lastM.t-60000)/60000)} daqiqa oldin edi.</p>`:""}${err?`<p class="dn">${E(err)}</p>`:""}`;
+ chart(V);
+ const b1=S.m1.bt,b5=S.m5.bt,cb=S[chosen].bt;
+ const msg=tfMode!=="auto"?`Siz ${TL(chosen)} ni qo‘lda tanlagansiz.`:b1.n<MINTR&&b5.n<MINTR?"Ikkala vaqt oralig‘ida ham tarixiy bitim yetarli emas, standart M5 ishlatilmoqda.":`Avto tanlov: <b>${TL(chosen)}</b>, chunki bu vaqt oralig‘ida tarixiy natija yaxshiroq (farq kamida 0.10R bo‘lsa almashadi).`;
+ const warn=cb.n>=MINTR&&cb.exp<=0?`<p class="dn">Diqqat: tanlangan vaqt oralig‘ida ham so‘nggi ~33 soatda bu strategiya o‘rtacha zarar ko‘rsatgan bo‘lardi.${filt?" Filtr yoqilgan: bot savdo qilmaydi.":""}</p>`:"";
+ $("#cmp").innerHTML=`<div class="cr h"><span>Vaqt oralig‘i</span><span>Hozirgi signal</span><span>Tarixiy bitim</span><span>Yutuq ulushi</span><span>O‘rtacha natija</span></div>`+["m1","m5"].map(tf=>{const x=S[tf],b=x.bt;return`<div class="cr ${tf===chosen?"on":""}"><b>${TL(tf)}${tf===chosen?" ✓":""}</b><span class="bdg ${x.a.sig}">${LBL[x.a.sig]}</span><span>${b.n} ta</span><span>${b.n?Math.round(b.wr*100)+"%":"—"}</span><b class="${sgnC(b.exp)}">${b.n?Rf(b.exp):"—"}</b></div>`}).join("")+`<p class="hint">${msg}</p>${warn}<p class="hint">R: bitimda xavf qilingan summa. M1 da spred ($${SPREAD}) stopga nisbatan katta, shuning uchun u ko‘pincha yomonroq chiqadi. Tarixiy natija kelajakni kafolatlamaydi, bitimlar soni kam bo‘lsa farq tasodif bo‘lishi mumkin.</p>`;
  const ses=(()=>{const h=new Date().getUTCHours();return h>=12&&h<16?["London + Nyu-York","eng faol vaqt, harakatlar kuchli bo‘ladi"]:h>=7&&h<12?["London","faol vaqt"]:h>=16&&h<21?["Nyu-York","faol vaqt, kechqurun susayadi"]:["Osiyo / tungi","odatda sokinroq, signal ishonchsizroq"]})();
  const trend=a.e20n>a.e50n?["Ko‘tarilish","up"]:["Pasayish","dn"];
- $("#cards").innerHTML=[["Trend",`<b class="${trend[1]}">${trend[0]}</b>`,`EMA20 ${f(a.e20n,1)} / EMA50 ${f(a.e50n,1)}`],["Kuch (RSI)",`<b>${f(a.R,0)}</b>`,a.R>=70?"haddan tashqari baland":a.R<=30?"haddan tashqari past":a.R>52?"xaridorlar kuchli":a.R<48?"sotuvchilar kuchli":"neytral"],["Tebranish (ATR)",`<b>$${f(a.A,2)}</b>`,"bitta shamning o‘rtacha kengligi"],["Sessiya",`<b style="font-size:17px">${ses[0]}</b>`,ses[1]],["Qarshilik",`<b>${f(a.res,1)}</b>`,"oxirgi 4 soatdagi eng yuqori narx"],["Qo‘llab-quvvat",`<b>${f(a.sup,1)}</b>`,"oxirgi 4 soatdagi eng past narx"],["MACD",`<b class="${sgnC(a.hm)}">${a.hm>=0?"+":"−"}${f(Math.abs(a.hm),2)}</b>`,a.hm>a.hp?"harakat kuchayapti":"harakat susayyapti"],["Ball",`<b class="${sgnC(a.score)}">${a.score>0?"+":""}${a.score} / 5</b>`,"+3 va undan yuqori: sotib olish, −3 va past: sotish"]].map(x=>`<div class="mini"><span>${x[0]}</span>${x[1]}<small>${x[2]}</small></div>`).join("");
+ $("#cards").innerHTML=[["Trend ("+TL(chosen)+")",`<b class="${trend[1]}">${trend[0]}</b>`,`EMA20 ${f(a.e20n,1)} / EMA50 ${f(a.e50n,1)}`],["Kuch (RSI)",`<b>${f(a.R,0)}</b>`,a.R>=70?"haddan tashqari baland":a.R<=30?"haddan tashqari past":a.R>52?"xaridorlar kuchli":a.R<48?"sotuvchilar kuchli":"neytral"],["Tebranish (ATR)",`<b>$${f(a.A,2)}</b>`,"bitta shamning o‘rtacha kengligi"],["Sessiya",`<b style="font-size:17px">${ses[0]}</b>`,ses[1]],["Qarshilik",`<b>${f(a.res,1)}</b>`,"oxirgi 48 shamdagi eng yuqori narx"],["Qo‘llab-quvvat",`<b>${f(a.sup,1)}</b>`,"oxirgi 48 shamdagi eng past narx"],["MACD",`<b class="${sgnC(a.hm)}">${a.hm>=0?"+":"−"}${f(Math.abs(a.hm),2)}</b>`,a.hm>a.hp?"harakat kuchayapti":"harakat susayyapti"],["Ball",`<b class="${sgnC(a.score)}">${a.score>0?"+":""}${a.score} / 5</b>`,"+3 va undan yuqori: sotib olish, −3 va past: sotish"]].map(x=>`<div class="mini"><span>${x[0]}</span>${x[1]}<small>${x[2]}</small></div>`).join("");
  $("#why").innerHTML=a.F.map(x=>`<div class="fr"><i class="${x.s>0?"up":x.s<0?"dn":""}">${x.s>0?"▲":x.s<0?"▼":"–"}</i><b>${E(x.k)}</b><small>${E(x.t)}</small></div>`).join("");
  const wr=acct.trades.length?Math.round(100*acct.trades.filter(t=>t.pnl>0).length/acct.trades.length)+"%":"—";
- $("#acct").innerHTML=`<dl><dt>Balans</dt><dd>$${f(acct.bal)}</dd><dt>Boshlanishdan</dt><dd class="${sgnC(pl)}">${money(pl)}</dd><dt>Yopilgan bitimlar</dt><dd>${acct.trades.length}</dd><dt>Yutuq ulushi</dt><dd>${wr}</dd></dl><p class="hint">Har bir bitimda balansning 1% i xavf ostiga qo‘yiladi (min. 0.01 lot). Spred $${SPREAD}. Bitim ${MAXH*5/60} soatdan keyin vaqt bo‘yicha yopiladi.</p>`;
- $("#pos").innerHTML=P?`<dl><dt>Yo‘nalish</dt><dd class="${P.dir>0?"up":"dn"}">${LBL[P.dir>0?"BUY":"SELL"]}</dd><dt>Kirish</dt><dd>${f(P.entry,2)}</dd><dt>SL</dt><dd class="dn">${f(P.sl,2)}</dd><dt>TP</dt><dd class="up">${f(P.tp,2)}</dd><dt>Hajm</dt><dd>${f(P.lots,2)} lot</dd><dt>Hozirgi natija</dt><dd class="${sgnC(fl)}">${money(fl)}</dd></dl><p class="hint">Sabab: ${E(P.why)}.</p>`:`<p class="empty">Hozir ochiq bitim yo‘q. Bot yangi M5 sham yopilganda signalni tekshiradi.</p>`;
+ $("#acct").innerHTML=`<dl><dt>Balans</dt><dd>$${f(acct.bal)}</dd><dt>Boshlanishdan</dt><dd class="${sgnC(pl)}">${money(pl)}</dd><dt>Yopilgan bitimlar</dt><dd>${acct.trades.length}</dd><dt>Yutuq ulushi</dt><dd>${wr}</dd></dl><p class="hint">Har bir bitimda balansning 1% i xavf ostiga qo‘yiladi (min. 0.01 lot). Spred $${SPREAD}. Bitim ${MAXH} ta shamdan keyin vaqt bo‘yicha yopiladi.</p>`;
+ $("#pos").innerHTML=P?`<dl><dt>Vaqt oralig‘i</dt><dd>${TL(P.tf)}</dd><dt>Yo‘nalish</dt><dd class="${P.dir>0?"up":"dn"}">${LBL[P.dir>0?"BUY":"SELL"]}</dd><dt>Kirish</dt><dd>${f(P.entry,2)}</dd><dt>SL</dt><dd class="dn">${f(P.sl,2)}</dd><dt>TP</dt><dd class="up">${f(P.tp,2)}</dd><dt>Hajm</dt><dd>${f(P.lots,2)} lot</dd><dt>Hozirgi natija</dt><dd class="${sgnC(fl)}">${money(fl)}</dd></dl><p class="hint">Sabab: ${E(P.why)}.</p>`:`<p class="empty">Hozir ochiq bitim yo‘q. Bot tanlangan vaqt oralig‘ida yangi sham yopilganda signalni tekshiradi.</p>`;
  $("#tc").textContent=acct.trades.length+" ta";
  const RS={TP:"foyda maqsadiga yetdi",SL:"zararni cheklash ishladi",vaqt:"vaqt tugadi"};
- $("#trades").innerHTML=acct.trades.slice(0,10).map(t=>`<div class="row"><time>${hm(t.t1)}</time><span class="bdg ${t.dir>0?"BUY":"SELL"}">${t.dir>0?"BUY":"SELL"}</span><div><b>${f(t.entry,2)} → ${f(t.exit,2)}</b><small>${RS[t.res]}</small></div><b class="${sgnC(t.pnl)}">${money(t.pnl)}</b></div>`).join("")||`<p class="empty">Hali yopilgan bitim yo‘q.</p>`;
- $("#sigs").innerHTML=acct.sig.slice(0,8).map(s=>`<div class="row"><time>${hm(s.t)}</time><span class="bdg ${s.sig}">${s.sig}</span><div><b>${LBL[s.sig]}</b><small>narx ${f(s.px,2)}</small></div><b>${s.sc>0?"+":""}${s.sc}</b></div>`).join("")||`<p class="empty">Hali signal yo‘q.</p>`}
-function cd(){const e=$("#cd");if(e){const s=300-(Math.floor(Date.now()/1000)%300);e.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}}
+ $("#trades").innerHTML=acct.trades.slice(0,10).map(t=>`<div class="row"><time>${hm(t.t1)}</time><span class="bdg ${t.dir>0?"BUY":"SELL"}">${t.dir>0?"BUY":"SELL"}</span><div><b>${f(t.entry,2)} → ${f(t.exit,2)}</b><small>${TL(t.tf||"m5")} · ${RS[t.res]}</small></div><b class="${sgnC(t.pnl)}">${money(t.pnl)}</b></div>`).join("")||`<p class="empty">Hali yopilgan bitim yo‘q.</p>`;
+ $("#sigs").innerHTML=acct.sig.slice(0,8).map(s=>`<div class="row"><time>${hm(s.t)}</time><span class="bdg ${s.sig}">${s.sig}</span><div><b>${LBL[s.sig]}</b><small>${TL(s.tf||"m5")} · narx ${f(s.px,2)}</small></div><b>${s.sc>0?"+":""}${s.sc}</b></div>`).join("")||`<p class="empty">Hali signal yo‘q.</p>`}
+function cd(){const e=$("#cd");if(e){const ms=TFMS[chosen]/1000,s=ms-(Math.floor(Date.now()/1000)%ms);e.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}}
 async function refresh(){
- try{all=await fetchData();err="";
-  const forming=!demo&&all[all.length-1].t+300000>Date.now(),closed=forming?all.slice(0,-1):all;
-  if(closed.length<60)throw new Error("Tahlil uchun sham yetarli emas");
-  A=analyze(closed);botStep(closed,A)}
- catch(e){err=String(e.message||e)}
+ try{await fetchData();err="";build()}catch(e){err=String(e.message||e)}
  render();cd();
- clearTimeout(timer);timer=setTimeout(refresh,demo?3000:src==="td"?150000:15000)}
-$("#ss").value=src;$("#sk").value=key;
-$("#sb").onclick=()=>{src=$("#ss").value;key=$("#sk").value.trim();SV("xau_src",src);SV("xau_key",key);dm=null;A=null;all=[];render();refresh()};
-$("#rb").onclick=()=>{if(confirm("Sinov hisobi, bitimlar va signal tarixi o‘chiriladi. Davom etasizmi?")){acct=newAcct();SV("xau_acct",acct);refresh()}};
+ clearTimeout(timer);timer=setTimeout(refresh,demo?1000:src==="td"?120000:15000)}
+$("#ss").value=src;$("#sk").value=key;$("#st").value=tfMode;$("#sf").checked=filt;
+$("#sb").onclick=()=>{src=$("#ss").value;key=$("#sk").value.trim();tfMode=$("#st").value;filt=$("#sf").checked;SV("xau_src",src);SV("xau_key",key);SV("xau_tf",tfMode);SV("xau_filt",filt);m1=[];store="";S=null;render();refresh()};
+$("#rb").onclick=()=>{if(confirm("Sinov hisobi, bitimlar va signal tarixi o‘chiriladi. Davom etasizmi?")){acct=newAcct();SV("xau_acct2",acct);refresh()}};
 setInterval(cd,1000);refresh();
 </script>
 </body>
