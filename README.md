@@ -1,5 +1,7 @@
 # Grok Bot Terminal (paper rejim)
 
+**▶ Jonli demo: https://nodirbek5298.github.io/grok-bot-terminal/** (serversiz, tasodifiy ma’lumot)
+
 Yangi Solana tokenlarini qidiradi, firibgarlik belgilarini tekshiradi va **soxta pul bilan** savdo qiladi.
 Scanner → Rug Check → Sizer → Executor → Logger → Equity. Haqiqiy bitim ochish kodi ataylab yozilmagan.
 
