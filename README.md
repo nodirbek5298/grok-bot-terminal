@@ -1,43 +1,26 @@
-# Grok Bot Terminal (paper rejim)
+# XAUUSD M5 Terminal (paper rejim)
 
-**▶ Jonli demo: https://nodirbek5298.github.io/grok-bot-terminal/** (serversiz, tasodifiy ma’lumot)
+**▶ Jonli sahifa: https://nodirbek5298.github.io/grok-bot-terminal/**
 
-Yangi Solana tokenlarini qidiradi, firibgarlik belgilarini tekshiradi va **soxta pul bilan** savdo qiladi.
-Scanner → Rug Check → Sizer → Executor → Logger → Equity. Haqiqiy bitim ochish kodi ataylab yozilmagan.
+Oltin/dollar (XAUUSD) uchun 5 daqiqalik (M5) sham tahlili va **soxta pul bilan** ishlaydigan sinov bot.
+Sahifada: sham grafigi, EMA20/EMA50, RSI, MACD, ATR, qarshilik va qo‘llab-quvvat darajalari, o‘zbekcha signal sabablari, bitimlar va signal tarixi.
 
-Ma’lumot: DexScreener (narx/hajm) + RugCheck (xavf bayroqlari), ikkalasi ham kalitsiz.
+Serversiz: hammasi brauzerda ishlaydi, GitHub Pages yetarli. Haqiqiy pul ishlatilmaydi, birjaga ulanmaydi.
 
-## GitHub nima qiladi va nima qilmaydi
-- GitHub kodni **saqlaydi** va **GitHub Pages** orqali `docs/index.html` ni ko‘rsatadi.
-- Pages faqat statik sahifa: u yerda dashboard **DEMO rejimda** (tasodifiy ma’lumot, server yo‘q) ishlaydi.
-- Haqiqiy bot (Python server) GitHub’da **ishlamaydi**. Uni o‘z kompyuteringizda yoki hosting’da (VPS, Railway, Fly.io, Render) ishga tushirasiz.
-  Bepul tarifdagi hostinglar ko‘pincha “uxlab qoladi”, bot esa 24/7 ishlashi kerak, shuning uchun arzon VPS ishonchliroq.
+## Ma’lumot manbalari
+- **Avto (standart):** PAXG/USDT, Binance (kalitsiz). PAXG oltin bilan bog‘langan token: narxi XAUUSD ga yaqin, lekin aynan o‘zi emas va 24/7 savdo qilinadi (XAUUSD hafta oxiri yopiq).
+- **XAU/USD, Twelve Data:** haqiqiy spot oltin. twelvedata.com da bepul kalit oling (8 so‘rov/daqiqa, 800/kun), sahifadagi “Ma’lumot manbai” bo‘limiga kiriting. Kalit faqat sizning brauzeringizda saqlanadi, repoga tushmaydi.
+- **Demo:** tasodifiy narx, internetsiz sinash uchun.
 
-## GitHub Pages’ni yoqish (demo)
-Repo → Settings → Pages → Branch: `main`, papka: `/docs` → Save.
-Manzil: `https://<username>.github.io/<repo>/`
-(Bepul akkauntda Pages faqat **public** repo uchun ishlaydi. Kod ichida maxfiy narsa yo‘q: `.env` repoga kirmaydi.)
+## Strategiya (oddiy, tushuntiriladigan)
+5 omil: EMA trend, EMA20 qiyaligi, RSI, MACD, yaqin oraliqdan chiqish. 3 va undan ko‘pi bir tomonga bo‘lsa signal. RSI haddan tashqari baland/past bo‘lsa va bozor juda sokin bo‘lsa, bot kirmaydi.
+Stop-loss = 1.5 × ATR, maqsad = 2.25 × ATR. Har bir bitimda balansning 1% i xavf ostiga qo‘yiladi, spred $0.35 hisobga olinadi, 2 soatdan keyin vaqt bo‘yicha yopiladi.
 
-## Lokal ishga tushirish
-    python3 -m venv .venv && source .venv/bin/activate     # Python 3.10+
-    pip install -r requirements.txt
-    cp .env.example .env        # sinash uchun DEMO=1, OWNER_ID bo'sh
-    uvicorn server:app --port 8000
-Brauzerda http://localhost:8000
+## Cheklovlar (halol)
+- Bot **sahifa ochiq turganda** ishlaydi. Holat brauzerda (localStorage) saqlanadi. 24/7 ishlashi uchun alohida server yoki rejalashtirilgan ish kerak.
+- Strategiya oddiy indikatorlarga asoslangan va **tarixiy sinovdan (backtest) o‘tkazilmagan**. Foyda kafolati yo‘q.
+- Bozor yopiq bo‘lsa, Twelve Data eski sham beradi: sahifa ogohlantiradi.
+- Bu savdo maslahati emas.
 
-## Hostingda (Docker)
-    docker build -t grok-bot-terminal .
-    docker run -p 8000:8000 --env-file .env -v $(pwd)/data:/app/data grok-bot-terminal
-`data/` papkasi balans va jurnalni saqlaydi.
-
-## Telegram Mini App
-1. @BotFather → /newbot → `BOT_TOKEN`.
-2. O‘z Telegram ID’ingiz (@userinfobot) → `OWNER_ID`. Shundan keyin API’ga faqat siz kira olasiz.
-3. Mini App https manzil talab qiladi: hosting manzili yoki `cloudflared tunnel --url http://localhost:8000`. Uni `PUBLIC_URL` ga yozing.
-4. Botga /start → “Terminalni ochish”. Buyruqlar: /status, /pause, /resume.
-
-## Muhim
-- `OWNER_ID` bo‘sh bo‘lsa API himoyasiz: internetga ochmang.
-- Slippage taxminiy formula bilan hisoblanadi, honeypot “sotib ko‘rish” testi yo‘q. Real natija yomonroq bo‘lishi mumkin.
-- Memecoin segmenti juda xavfli. Paper natijasi real foydani kafolatlamaydi.
-- Real savdoga o‘tishdan oldin: bir necha hafta paper, alohida kichik hamyon, asosiy kalitlarni hech qachon botga bermang.
+## Eski Solana versiyasi
+`engine.py`, `feeds.py`, `server.py`, `Dockerfile`, `requirements.txt`, `.env.example` Solana memecoinlar uchun yozilgan eski bot. Yangi sahifa (`docs/index.html`) ularga bog‘liq emas. Eski sahifa kodi git tarixida (commit `f82f257`) saqlangan.
