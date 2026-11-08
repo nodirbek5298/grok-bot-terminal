@@ -51,33 +51,40 @@ details dl{grid-template-columns:1fr;margin-top:10px}details dt{color:var(--ink)
 .cr.h{border:0;color:var(--mut);font-size:11px}.cr.on{background:#0c2616;border-radius:8px;padding-left:8px;padding-right:8px}
 label{font:13px var(--sans);color:var(--mut);display:flex;gap:6px;align-items:center}
 @media(max-width:600px){.cr{font-size:11px;gap:4px}}
+.vd{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin:12px 0 8px}
+.vd .w{font:800 52px/1 var(--mono);padding:8px 22px;border-radius:16px;border:3px solid}
+.vd .pr{font:700 26px var(--mono)}
+.str{display:inline-block;font:700 12px var(--mono);padding:4px 10px;border-radius:999px;border:1px solid;margin-top:4px}
+.S3{color:var(--g);border-color:var(--g)}.S2{color:var(--amb);border-color:var(--amb)}.S1{color:var(--mut);border-color:var(--line)}
+.tfs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tfs span{font:12px var(--mono);border:1px solid var(--line);border-radius:8px;padding:5px 10px;color:var(--mut)}
+details.card>summary{font-size:14px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div><h1>XAUUSD <b>M1 + M5</b> Terminal</h1><p>Oltin/dollar: ikkala vaqt oralig‘ini tahlil qiladi, aniqrog‘ini tanlaydi (paper bot)</p></div>
+    <div><h1>XAUUSD <b>M1 + M5</b> Terminal</h1><p>Oltin/dollar: BUY yoki SELL javobi, M1 va M5, sinov (paper) bot</p></div>
     <div class="pills"><span class="pill ok">PAPER · soxta pul</span><span class="pill" id="src">ulanmoqda…</span></div>
   </header>
   <section class="hero" id="hero"></section>
-  <section class="card"><h2>Grafik · <span id="tfl"></span> <span>EMA20 (havorang), EMA50 (sariq), chiziqlar: daraja</span></h2><svg id="ch" viewBox="0 0 820 320"></svg><svg id="rs" viewBox="0 0 820 70"></svg></section>
-  <section class="card"><h2>Qaysi vaqt oralig‘i aniqroq? <span>so‘nggi ~33 soatdagi tarixiy sinov</span></h2><div id="cmp"></div></section>
-  <section class="cards" id="cards"></section>
-  <section class="card"><h2>Signal sabablari <span>5 omil, 3 tasi bir tomonga bo‘lsa signal</span></h2><div id="why"></div></section>
+  <section class="card"><h2>Grafik · <span id="tfl"></span> <span>EMA20 (havorang), EMA50 (sariq)</span></h2><svg id="ch" viewBox="0 0 820 320"></svg><svg id="rs" viewBox="0 0 820 70"></svg></section>
+  <section class="card"><h2>Nega shunday? <span>5 omil ovoz beradi</span></h2><div id="why"></div></section>
   <div class="cols">
     <section class="card"><h2>Sinov bot <span>soxta pul</span></h2><div id="acct"></div></section>
     <section class="card"><h2>Ochiq bitim</h2><div id="pos"></div></section>
   </div>
-  <section class="card"><h2>Bitimlar tarixi <span id="tc"></span></h2><div id="trades"></div></section>
-  <section class="card"><h2>Signal tarixi <span>signal o‘zgargan paytlar</span></h2><div id="sigs"></div></section>
-  <section class="card"><h2>Ma’lumot manbai</h2><div class="set">
+  <details class="card"><summary>M1 va M5 solishtirish (qaysi biri aniqroq)</summary><div id="cmp" style="margin-top:10px"></div></details>
+  <details class="card"><summary>Raqamli ko‘rsatkichlar</summary><div class="cards" id="cards" style="margin:10px 0 0"></div></details>
+  <details class="card"><summary>Bitimlar va signal tarixi</summary><h2 style="margin-top:12px">Bitimlar <span id="tc"></span></h2><div id="trades"></div><h2 style="margin-top:12px">Signal o‘zgargan paytlar</h2><div id="sigs"></div></details>
+  <details class="card"><summary>Sozlamalar va ma’lumot manbai</summary><div class="set" style="margin-top:10px">
     <select id="ss"><option value="auto">Avto: PAXG/USDT (Binance), kalitsiz</option><option value="td">XAU/USD: Twelve Data (kalit kerak)</option><option value="demo">Demo (tasodifiy)</option></select>
     <select id="st"><option value="auto">Vaqt oralig‘i: Avto (aniqrog‘ini tanlaydi)</option><option value="m1">Faqat M1</option><option value="m5">Faqat M5</option></select>
     <label><input type="checkbox" id="sf"> Tarixiy natija manfiy bo‘lsa bot savdo qilmasin</label>
     <input id="sk" placeholder="Twelve Data API kaliti" size="26" type="password" autocomplete="off">
     <button id="sb">Saqlash</button><button id="rb">Sinov hisobini nolga qaytarish</button></div>
-    <p class="hint">PAXG oltin bilan bog‘langan token: narxi XAUUSD ga yaqin, lekin aynan o‘zi emas va 24/7 savdo qilinadi. Haqiqiy XAU/USD uchun twelvedata.com da bepul kalit oling (kalit faqat shu brauzerda saqlanadi). Bepul tarifda kechikish bo‘lishi mumkin.</p></section>
+    <p class="hint">PAXG oltin bilan bog‘langan token: narxi XAUUSD ga yaqin, lekin aynan o‘zi emas va 24/7 savdo qilinadi. Haqiqiy XAU/USD uchun twelvedata.com da bepul kalit oling (kalit faqat shu brauzerda saqlanadi). Bepul tarifda kechikish bo‘lishi mumkin.</p></details>
   <details class="card"><summary>Tushunarsiz so‘zlar lug‘ati</summary><dl>
+    <dt>Signal kuchi</dt><dd>KUCHLI: omillar yetarlicha kelishgan, bot shu signalda kiradi. O‘RTACHA / ZAIF: faqat yo‘nalish ko‘rsatkichi, bot kirmaydi.</dd>
     <dt>M1 / M5</dt><dd>Har bir sham 1 yoki 5 daqiqani ko‘rsatadi. M1 tez, lekin shovqinli va spred unga ko‘proq ta’sir qiladi.</dd>
     <dt>R (natija o‘lchovi)</dt><dd>Bitimda xavf qilingan summa (stop masofasi). +0.2R: har bir bitimga o‘rtacha 0.2 marta xavf miqdorida foyda. −0.2R: shuncha zarar.</dd>
     <dt>Tarixiy sinov</dt><dd>Xuddi shu qoidalarni oxirgi ~33 soatlik narxlarda “qayta o‘ynab” ko‘rish. Kelajakni kafolatlamaydi.</dd>
@@ -192,19 +199,21 @@ function chart(V){
  $("#ch").innerHTML=s;
  const ry=r=>66-(r/100)*62;let q=`<line x1="${pl}" x2="${X}" y1="${ry(70)}" y2="${ry(70)}" stroke="#173322" stroke-dasharray="4 4"/><line x1="${pl}" x2="${X}" y1="${ry(30)}" y2="${ry(30)}" stroke="#173322" stroke-dasharray="4 4"/><text class="tx" x="${X+4}" y="${ry(70)+3}">70</text><text class="tx" x="${X+4}" y="${ry(30)+3}">30</text><text class="tx" x="${pl+2}" y="10">RSI</text><polyline fill="none" stroke="#22e07a" stroke-width="1.6" points="`;
  for(let i=st;i<I.r.length;i++)q+=`${sx(i)},${ry(I.r[i])} `;$("#rs").innerHTML=q+`"/>`}
+const LV=["","ZAIF","O‘RTACHA","KUCHLI"];
+function vd(a){const d=a.score>0?1:a.score<0?-1:(a.e20n>a.e50n?1:-1),ag=a.F.filter(x=>x.s===d).length,op=a.F.filter(x=>x.s===-d).length;return{d,ag,op,lv:a.sig!=="WAIT"?3:(ag-op>=2?2:1),side:d>0?"BUY":"SELL"}}
 const sgnC=n=>n>=0?"up":"dn",money=n=>(n>=0?"+$":"−$")+f(Math.abs(n)),TL=t=>t.toUpperCase(),Rf=x=>(x>=0?"+":"−")+f(Math.abs(x),2)+"R";
 function render(){
  if(!S){$("#hero").innerHTML=`<div class="live">${E(srcName)}</div><h2>Ma’lumot yuklanmoqda…</h2>${err?`<p class="dn">${E(err)}</p>`:""}`;return}
  const V=S[chosen],a=V.a,P=acct.pos,lastM=m1[m1.length-1],lp=lastM.c,fl=P?(lp-P.entry)*P.dir*P.lots*100:0,pl=acct.bal-acct.start;
  const stale=!demo&&(Date.now()-lastM.t-60000)/60000>15;
  $("#src").textContent=srcName;$("#tfl").textContent=TL(chosen);
- const nb=a.F.filter(x=>x.s>0).length,ns=a.F.filter(x=>x.s<0).length;
- $("#hero").innerHTML=`<div class="live">● ${E(srcName)} · tanlangan vaqt oralig‘i: <b>${TL(chosen)}</b> ${tfMode==="auto"?"(avto)":"(qo‘lda)"}</div><h2><span class="sig ${a.sig}">${LBL[a.sig]}</span><span>${f(lp,2)}</span></h2><p>${a.sig==="WAIT"?E(a.note)+".":`5 omildan ${a.sig==="BUY"?nb:ns} tasi ${a.sig==="BUY"?"sotib olishni":"sotishni"} ko‘rsatyapti. Taxminiy SL: <b>${f(a.px-a.dir*1.5*a.A,2)}</b>, TP: <b>${f(a.px+a.dir*2.25*a.A,2)}</b>.`} ${demo?"":`Keyingi ${TL(chosen)} sham yopilishiga <b id="cd"></b>.`}</p>${P?`<p>Bot hozir bitimda (${TL(P.tf)}): <b>${LBL[P.dir>0?"BUY":"SELL"]}</b> ${f(P.entry,2)}, natija <b class="${sgnC(fl)}">${money(fl)}</b></p>`:""}${stale?`<p class="dn">Bozor yopiq bo‘lishi mumkin: oxirgi sham ${Math.round((Date.now()-lastM.t-60000)/60000)} daqiqa oldin edi.</p>`:""}${err?`<p class="dn">${E(err)}</p>`:""}`;
+ const v=vd(a),sl=a.px-v.d*1.5*a.A,tp=a.px+v.d*2.25*a.A,why=a.note&&a.sig==="WAIT"&&(Math.abs(a.score)>=3||a.note.includes("sokin"))?" ("+E(a.note)+")":"";
+ $("#hero").innerHTML=`<div class="live">● ${E(srcName)} · ${TL(chosen)} ${tfMode==="auto"?"(avto tanlandi)":"(qo‘lda)"}</div><div class="vd"><span class="w ${v.side}">${v.d>0?"▲":"▼"} ${v.side}</span><div><div class="pr">${f(lp,2)}</div><span class="str S${v.lv}">${LV[v.lv]} signal</span></div></div><p><b>${v.d>0?"Sotib olish":"Sotish"}:</b> narx ${v.d>0?"ko‘tarilishi":"pasayishi"} ehtimoli yuqoriroq. 5 omildan <b>${v.ag}</b> tasi shu tomonda, <b>${v.op}</b> tasi qarshi.</p><p>${v.lv===3?"Bot shu signalda kiradi.":v.lv===2?"Bot kutadi: kirish uchun kuchliroq tasdiq kerak"+why+".":"Ishonch past: kirish tavsiya etilmaydi, kutgan ma’qul."}</p><p>Agar ${v.side} qilsangiz: SL <b>${f(sl,2)}</b>, TP <b>${f(tp,2)}</b> (stop 1.5 × ATR, maqsad 2.25 × ATR).${demo?"":` Keyingi ${TL(chosen)} sham yopilishiga <b id="cd"></b>.`}</p><div class="tfs">${["m1","m5"].map(tf=>{const w=vd(S[tf].a);return`<span>${TL(tf)}: <b class="${w.d>0?"up":"dn"}">${w.side}</b> · ${LV[w.lv].toLowerCase()}${tf===chosen?" ✓":""}</span>`}).join("")}</div>${P?`<p>Bot hozir bitimda (${TL(P.tf)}): <b>${LBL[P.dir>0?"BUY":"SELL"]}</b> ${f(P.entry,2)}, natija <b class="${sgnC(fl)}">${money(fl)}</b></p>`:""}${stale?`<p class="dn">Bozor yopiq bo‘lishi mumkin: oxirgi sham ${Math.round((Date.now()-lastM.t-60000)/60000)} daqiqa oldin edi.</p>`:""}${err?`<p class="dn">${E(err)}</p>`:""}`;
  chart(V);
  const b1=S.m1.bt,b5=S.m5.bt,cb=S[chosen].bt;
  const msg=tfMode!=="auto"?`Siz ${TL(chosen)} ni qo‘lda tanlagansiz.`:b1.n<MINTR&&b5.n<MINTR?"Ikkala vaqt oralig‘ida ham tarixiy bitim yetarli emas, standart M5 ishlatilmoqda.":`Avto tanlov: <b>${TL(chosen)}</b>, chunki bu vaqt oralig‘ida tarixiy natija yaxshiroq (farq kamida 0.10R bo‘lsa almashadi).`;
  const warn=cb.n>=MINTR&&cb.exp<=0?`<p class="dn">Diqqat: tanlangan vaqt oralig‘ida ham so‘nggi ~33 soatda bu strategiya o‘rtacha zarar ko‘rsatgan bo‘lardi.${filt?" Filtr yoqilgan: bot savdo qilmaydi.":""}</p>`:"";
- $("#cmp").innerHTML=`<div class="cr h"><span>Vaqt oralig‘i</span><span>Hozirgi signal</span><span>Tarixiy bitim</span><span>Yutuq ulushi</span><span>O‘rtacha natija</span></div>`+["m1","m5"].map(tf=>{const x=S[tf],b=x.bt;return`<div class="cr ${tf===chosen?"on":""}"><b>${TL(tf)}${tf===chosen?" ✓":""}</b><span class="bdg ${x.a.sig}">${LBL[x.a.sig]}</span><span>${b.n} ta</span><span>${b.n?Math.round(b.wr*100)+"%":"—"}</span><b class="${sgnC(b.exp)}">${b.n?Rf(b.exp):"—"}</b></div>`}).join("")+`<p class="hint">${msg}</p>${warn}<p class="hint">R: bitimda xavf qilingan summa. M1 da spred ($${SPREAD}) stopga nisbatan katta, shuning uchun u ko‘pincha yomonroq chiqadi. Tarixiy natija kelajakni kafolatlamaydi, bitimlar soni kam bo‘lsa farq tasodif bo‘lishi mumkin.</p>`;
+ $("#cmp").innerHTML=`<div class="cr h"><span>Vaqt oralig‘i</span><span>Hozirgi signal</span><span>Tarixiy bitim</span><span>Yutuq ulushi</span><span>O‘rtacha natija</span></div>`+["m1","m5"].map(tf=>{const x=S[tf],b=x.bt;return`<div class="cr ${tf===chosen?"on":""}"><b>${TL(tf)}${tf===chosen?" ✓":""}</b><span class="bdg ${vd(x.a).side}">${vd(x.a).side} · ${LV[vd(x.a).lv].toLowerCase()}</span><span>${b.n} ta</span><span>${b.n?Math.round(b.wr*100)+"%":"—"}</span><b class="${sgnC(b.exp)}">${b.n?Rf(b.exp):"—"}</b></div>`}).join("")+`<p class="hint">${msg}</p>${warn}<p class="hint">R: bitimda xavf qilingan summa. M1 da spred ($${SPREAD}) stopga nisbatan katta, shuning uchun u ko‘pincha yomonroq chiqadi. Tarixiy natija kelajakni kafolatlamaydi, bitimlar soni kam bo‘lsa farq tasodif bo‘lishi mumkin.</p>`;
  const ses=(()=>{const h=new Date().getUTCHours();return h>=12&&h<16?["London + Nyu-York","eng faol vaqt, harakatlar kuchli bo‘ladi"]:h>=7&&h<12?["London","faol vaqt"]:h>=16&&h<21?["Nyu-York","faol vaqt, kechqurun susayadi"]:["Osiyo / tungi","odatda sokinroq, signal ishonchsizroq"]})();
  const trend=a.e20n>a.e50n?["Ko‘tarilish","up"]:["Pasayish","dn"];
  $("#cards").innerHTML=[["Trend ("+TL(chosen)+")",`<b class="${trend[1]}">${trend[0]}</b>`,`EMA20 ${f(a.e20n,1)} / EMA50 ${f(a.e50n,1)}`],["Kuch (RSI)",`<b>${f(a.R,0)}</b>`,a.R>=70?"haddan tashqari baland":a.R<=30?"haddan tashqari past":a.R>52?"xaridorlar kuchli":a.R<48?"sotuvchilar kuchli":"neytral"],["Tebranish (ATR)",`<b>$${f(a.A,2)}</b>`,"bitta shamning o‘rtacha kengligi"],["Sessiya",`<b style="font-size:17px">${ses[0]}</b>`,ses[1]],["Qarshilik",`<b>${f(a.res,1)}</b>`,"oxirgi 48 shamdagi eng yuqori narx"],["Qo‘llab-quvvat",`<b>${f(a.sup,1)}</b>`,"oxirgi 48 shamdagi eng past narx"],["MACD",`<b class="${sgnC(a.hm)}">${a.hm>=0?"+":"−"}${f(Math.abs(a.hm),2)}</b>`,a.hm>a.hp?"harakat kuchayapti":"harakat susayyapti"],["Ball",`<b class="${sgnC(a.score)}">${a.score>0?"+":""}${a.score} / 5</b>`,"+3 va undan yuqori: sotib olish, −3 va past: sotish"]].map(x=>`<div class="mini"><span>${x[0]}</span>${x[1]}<small>${x[2]}</small></div>`).join("");
