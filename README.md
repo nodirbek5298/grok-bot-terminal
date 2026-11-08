@@ -5,7 +5,7 @@
 Oltin/dollar (XAUUSD) uchun M1 va M5 shamlarini birga tahlil qiladi, qaysi vaqt oralig‘ida strategiya so‘nggi paytlarda yaxshiroq ishlaganini o‘lchaydi va bot o‘shanisini ishlatadi. Savdo **soxta pul** bilan (paper).
 Sahifada: sham grafigi, EMA20/EMA50, RSI, MACD, ATR, qarshilik va qo‘llab-quvvat, o‘zbekcha signal sabablari, M1 va M5 solishtirish jadvali, bitimlar va signal tarixi.
 
-Serversiz: hammasi brauzerda ishlaydi, GitHub Pages yetarli. Haqiqiy pul ishlatilmaydi, birjaga ulanmaydi.
+Serversiz: hammasi brauzerda ishlaydi, GitHub Pages yetarli (`docs/index.html`). Haqiqiy pul ishlatilmaydi, birjaga ulanmaydi.
 
 ## Avto tanlov qanday ishlaydi
 1. Asos sifatida M1 shamlari olinadi, M5 ulardan yig‘iladi.
@@ -30,5 +30,5 @@ Stop-loss = 1.5 × ATR, maqsad = 2.25 × ATR. Har bir bitimda balansning 1% i xa
 - Bozor yopiq bo‘lsa, Twelve Data eski sham beradi: sahifa ogohlantiradi.
 - Bu savdo maslahati emas.
 
-## Eski Solana versiyasi
-`engine.py`, `feeds.py`, `server.py`, `Dockerfile`, `requirements.txt`, `.env.example` Solana memecoinlar uchun yozilgan eski bot. Yangi sahifa (`docs/index.html`) ularga bog‘liq emas. Eski sahifa kodi git tarixida (commit `f82f257`) saqlangan.
+## Eslatma
+Avvalgi Solana memecoin versiyasi (Python bot va Telegram Mini App) bu repodan olib tashlangan. Uni git tarixidan (commit `f82f257` va undan oldingilar) topish mumkin.
